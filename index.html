@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>المساعد الذكي الافتراضي</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: #f0f2f5;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+
+        /* حاوية الشات الرئيسية */
+        .chat-container {
+            width: 100%;
+            max-width: 450px;
+            height: 100vh;
+            background-color: #ffffff;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+
+        @media (min-width: 460px) {
+            .chat-container {
+                height: 85vh;
+                border-radius: 15px;
+                overflow: hidden;
+            }
+        }
+
+        /* الهيدر - الجزء العلوي */
+        .chat-header {
+            background: linear-gradient(135deg, #1e3c72, #2a5298);
+            color: white;
+            padding: 15px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .avatar-container {
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            background-color: rgba(255,255,255,0.2);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 20px;
+            border: 2px solid #fff;
+        }
+
+        .bot-status h3 {
+            font-size: 16px;
+            margin-bottom: 2px;
+        }
+
+        .bot-status span {
+            font-size: 12px;
+            color: #a8ffb2;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        /* منطقة الرسائل */
+        .chat-messages {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+            background-color: #f7f9fb;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .message {
+            max-width: 75%;
+            padding: 12px 16px;
+            border-radius: 12px;
+            font-size: 15px;
+            line-height: 1.4;
+            word-wrap: break-word;
+        }
+
+        /* رسالة البوت */
+        .message.bot {
+            background-color: #ffffff;
+            color: #333;
+            align-self: flex-start;
+            border-bottom-right-radius: 2px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        }
+
+        /* رسالة المستخدم */
+        .message.user {
+            background-color: #2a5298;
+            color: white;
+            align-self: flex-end;
+            border-bottom-left-radius: 2px;
+        }
+
+        /* منطقة الإدخال السفلى */
+        .chat-input-area {
+            padding: 15px;
+            background-color: #ffffff;
+            border-top: 1px solid #eee;
+            display: flex;
+            gap: 10px;
+        }
+
+        .chat-input-area input {
+            flex: 1;
+            padding: 12px 15px;
+            border: 1px solid #ddd;
+            border-radius: 25px;
+            outline: none;
+            font-size: 15px;
+            transition: border 0.2s;
+        }
+
+        .chat-input-area input:focus {
+            border-color: #2a5298;
+        }
+
+        .chat-input-area button {
+            background-color: #2a5298;
+            color: white;
+            border: none;
+            padding: 0 20px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 15px;
+            font-weight: bold;
+            transition: background 0.2s;
+        }
+
+        .chat-input-area button:hover {
+            background-color: #1e3c72;
+        }
+    </style>
+</head>
+<body>
+
+<div class="chat-container">
+    <div class="chat-header">
+        <div class="avatar-container">🤖</div>
+        <div class="bot-status">
+            <h3 id="botName">المساعد الذكي</h3>
+            <span>● متصل الآن</span>
+        </div>
+    </div>
+
+    <div class="chat-messages" id="chatMessages">
+        <div class="message bot" id="welcomeMessage">
+            مرحباً بك! أنا مساعدك الافتراضي الذكي. كيف يمكنني مساعدتك اليوم؟
+        </div>
+    </div>
+
+    <div class="chat-input-area">
+        <input type="text" id="userInput" placeholder="اكتب رسالتك هنا..." onkeypress="handleKeyPress(event)">
+        <button onclick="sendMessage()">إرسال</button>
+    </div>
+</div>
+
+<!-- دالة تشغيل وإدارة واجهة الشات وربطها بالملف البرمجي الخارجي -->
+<script>
+    const chatMessages = document.getElementById('chatMessages');
+    const userInput = document.getElementById('userInput');
+
+    // تفعيل إرسال رسالة المستخدم والبحث عن الرد الحقيقي من ملف app.js
+    async function sendMessage() {
+        const text = userInput.value.trim();
+        if (text === '') return;
+
+        // 1. عرض رسالة المستخدم
+        appendMessage(text, 'user');
+        userInput.value = '';
+
+        // 2. استدعاء العقل الذكي من ملف app.js للحصول على الإجابة الحقيقية المخصصة للتاجر
+        if (typeof getAIResponse === 'function') {
+            const aiReply = await getAIResponse(text);
+            setTimeout(() => {
+                appendMessage(aiReply, 'bot');
+            }, 500);
+        } else {
+            // في حال عدم وجود ملف app.js بجانبه
+            setTimeout(() => {
+                appendMessage("خطأ: لم يتم العثور على ملف التحكم الذكي app.js.", 'bot');
+            }, 500);
+        }
+    }
+
+    function appendMessage(text, sender) {
+        const messageDiv = document.createElement('div');
+        messageDiv.classList.add('message', sender);
+        messageDiv.innerText = text;
+        chatMessages.appendChild(messageDiv);
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+    }
+
+    function handleKeyPress(event) {
+        if (event.key === 'Enter') {
+            sendMessage();
+        }
+    }
+</script>
+
+<!-- هنا تم استدعاء ملف التحكم والحماية البرمجية الخارجي بأمان وبشكل صحيح -->
+<script src="app.js"></script>
+
+</body>
+</html>
