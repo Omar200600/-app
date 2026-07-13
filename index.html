@@ -20,7 +20,6 @@
             height: 100vh;
         }
 
-        /* حاوية الشات الرئيسية */
         .chat-container {
             width: 100%;
             max-width: 450px;
@@ -39,7 +38,6 @@
             }
         }
 
-        /* الهيدر - الجزء العلوي */
         .chat-header {
             background: linear-gradient(135deg, #1e3c72, #2a5298);
             color: white;
@@ -74,7 +72,6 @@
             gap: 4px;
         }
 
-        /* منطقة الرسائل */
         .chat-messages {
             flex: 1;
             padding: 20px;
@@ -94,7 +91,6 @@
             word-wrap: break-word;
         }
 
-        /* رسالة البوت */
         .message.bot {
             background-color: #ffffff;
             color: #333;
@@ -103,7 +99,6 @@
             box-shadow: 0 2px 5px rgba(0,0,0,0.05);
         }
 
-        /* رسالة المستخدم */
         .message.user {
             background-color: #2a5298;
             color: white;
@@ -111,7 +106,26 @@
             border-bottom-left-radius: 2px;
         }
 
-        /* منطقة الإدخال السفلى */
+        .whatsapp-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background-color: #25D366;
+            color: white;
+            text-decoration: none;
+            padding: 8px 14px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: bold;
+            margin-top: 8px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            transition: background 0.2s;
+        }
+
+        .whatsapp-btn:hover {
+            background-color: #128C7E;
+        }
+
         .chat-input-area {
             padding: 15px;
             background-color: #ffffff;
@@ -127,7 +141,6 @@
             border-radius: 25px;
             outline: none;
             font-size: 15px;
-            transition: border 0.2s;
         }
 
         .chat-input-area input:focus {
@@ -143,11 +156,6 @@
             cursor: pointer;
             font-size: 15px;
             font-weight: bold;
-            transition: background 0.2s;
-        }
-
-        .chat-input-area button:hover {
-            background-color: #1e3c72;
         }
     </style>
 </head>
@@ -174,32 +182,33 @@
     </div>
 </div>
 
-<!-- دالة تشغيل وإدارة واجهة الشات وربطها بالملف البرمجي الخارجي -->
 <script>
     const chatMessages = document.getElementById('chatMessages');
     const userInput = document.getElementById('userInput');
 
-    // تفعيل إرسال رسالة المستخدم والبحث عن الرد الحقيقي من ملف app.js
     async function sendMessage() {
         const text = userInput.value.trim();
         if (text === '') return;
 
-        // 1. عرض رسالة المستخدم
         appendMessage(text, 'user');
         userInput.value = '';
 
-        // 2. استدعاء العقل الذكي من ملف app.js للحصول على الإجابة الحقيقية المخصصة للتاجر
+        // فحص وجود الدالة القادمة من ملف app.js وتشغيلها
         if (typeof getAIResponse === 'function') {
-            const aiReply = await getAIResponse(text);
-            setTimeout(() => {
-                appendMessage(aiReply, 'bot');
-            }, 500);
+            await getAIResponse(text);
         } else {
-            // في حال عدم وجود ملف app.js بجانبه
             setTimeout(() => {
-                appendMessage("خطأ: لم يتم العثور على ملف التحكم الذكي app.js.", 'bot');
+                appendHtmlMessage("<div>تنبيه: جاري تحميل عقل المساعد أو ملف app.js غير مرتبط بشكل صحيح.</div>", 'bot');
             }, 500);
         }
+    }
+
+    function appendHtmlMessage(htmlContent, sender) {
+        const messageDiv = document.createElement('div');
+        messageDiv.classList.add('message', sender);
+        messageDiv.innerHTML = htmlContent;
+        chatMessages.appendChild(messageDiv);
+        chatMessages.scrollTop = chatMessages.scrollHeight;
     }
 
     function appendMessage(text, sender) {
@@ -217,8 +226,8 @@
     }
 </script>
 
-<!-- هنا تم استدعاء ملف التحكم والحماية البرمجية الخارجي بأمان وبشكل صحيح -->
+<!-- استدعاء ملف التحكم الخارجي بشكل صريح ومباشر -->
 <script src="app.js"></script>
 
-</body><script src="app.js"></script>
+</body>
 </html>
