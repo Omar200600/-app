@@ -1,27 +1,54 @@
-// app.js - ملف التحكم والحماية البرمجية المستقل
+// app.js - المحرك الذكي الموحد لجميع المجالات (صيدلية، متجر، مدرسة، إلخ)
 
 const LICENSE_KEY = "OMAR-AXIS-2026-XYZ"; 
-const MERCHANT_WHATSAPP = "967777777777"; // يمكنك استبدال هذا برقم واتساب التاجر الحقيقي لاحقاً
 
 function verifyLicense() {
     return LICENSE_KEY === "OMAR-AXIS-2026-XYZ";
 }
 
+// هذه قاعدة البيانات التي ستتغير لكل تاجر حسب مجاله (صيدلية، مدرسة، بقالة)
 const businessData = {
-    name: "صيدلية الشفاء الذكية",
-    hours: "من السبت إلى الخميس، من 8 صباحاً حتى 11 مساءً",
-    services: "توفير الأدوية، مستحضرات التجميل، وفحص السكري والضغط ترحيباً بكم.",
-    products: [
-        { name: "بندول", price: "500 ريال", status: "متوفر" },
-        { name: "فيتامين سي", price: "1200 ريال", status: "متوفر" },
-        { name: "كمامات", price: "100 ريال", status: "نفذت الكمية" }
+    name: "صيدلية الشفاء الحديثة", // اسم النشاط التجاري
+    type: "pharmacy", // نوع النشاط: pharmacy, market, school, shop
+    whatsappNumber: "967777777777", // رقم واتساب صاحب العمل لاستلام الطلبات
+    hours: "يومياً من 8 صباحاً حتى 11 مساءً",
+    welcomeText: "مرحباً بك! أنا مساعدك الافتراضي الذكي. كيف يمكنني مساعدتك اليوم؟",
+    
+    // قائمة المنتجات أو الخدمات المتاحة
+    items: [
+        // مثال لمجال الصيدلية
+        { name: "بندول", price: "500 ريال", category: "أدوية", status: "متوفر", extraInfo: "مسكن للآلام وخافض للحرارة" },
+        { name: "فيتامين سي", price: "1200 ريال", category: "فيتامينات", status: "متوفر", extraInfo: "فوار لتقوية المناعة" },
+        
+        // مثال لمجال البقالة والسوبرماركت (يفعل تلقائياً إذا كان النوع market)
+        { name: "حليب", price: "400 ريال", category: "ألبان", status: "متوفر", extraInfo: "حليب طازج كامل الدسم" },
+        { name: "أرز بسمتي", price: "3500 ريال", category: "مواد غذائية", status: "متوفر", extraInfo: "كيس وزن 5 كيلو" },
+        
+        // مثال لمجال المدارس والخدمات التعليمية (يفعل تلقائياً إذا كان النوع school)
+        { name: "دورة الفيزياء", price: "5000 ريال", category: "تعليم", status: "متوفر", extraInfo: "شرح كامل لمنهج الفيزياء للثانوية العامة" },
+        { name: "كتاب الكيمياء", price: "1500 ريال", category: "كتب", status: "متوفر", extraInfo: "ملخص شامل مع التدريبات المحلولة" }
     ]
 };
 
-// تحديث النصوص الأساسية للواجهة فور تحميل الملف
+// تهيئة وتعديل الواجهة تلقائياً بناءً على نوع النشاط التجاري
 document.addEventListener("DOMContentLoaded", () => {
-    if(document.getElementById('botName')) document.getElementById('botName').innerText = businessData.name;
-    if(document.getElementById('welcomeMessage')) document.getElementById('welcomeMessage').innerText = `مرحباً بك في ${businessData.name}! كيف يمكنني مساعدتك اليوم؟`;
+    if (document.getElementById('botName')) {
+        document.getElementById('botName').innerText = businessData.name;
+    }
+    
+    // تخصيص رسالة الترحيب حسب المجال لتبهر التاجر
+    let customizedWelcome = businessData.welcomeText;
+    if (businessData.type === "pharmacy") {
+        customizedWelcome = `مرحباً بك في ${businessData.name}! يمكنك الاستفسار عن الأدوية أو تصوير الروشتة وطلبها مباشرة عبر الواتساب. 💊`;
+    } else if (businessData.type === "school") {
+        customizedWelcome = `مرحباً بك في ${businessData.name} التعليمية! كيف يمكنني مساعدتك اليوم في اختيار الدورات أو تسجيل الطلاب؟ 📚`;
+    } else if (businessData.type === "market") {
+        customizedWelcome = `مرحباً بك في ${businessData.name}! اكتب أسماء المواد الغذائية أو الطلبات التي تحتاجها لتجهيز سلتك فوراً. 🛒`;
+    }
+    
+    if (document.getElementById('welcomeMessage')) {
+        document.getElementById('welcomeMessage').innerText = customizedWelcome;
+    }
 });
 
 async function getAIResponse(userMessage) {
@@ -30,41 +57,59 @@ async function getAIResponse(userMessage) {
         return;
     }
 
-    const messageLower = userMessage.toLowerCase();
+    const messageLower = userMessage.toLowerCase().trim();
 
-    // 1. الإجابة عن مواعيد العمل
-    if (messageLower.includes("دوام") || messageLower.includes("تفتحوا") || messageLower.includes("وقت")) {
+    // 1. الإجابة عن أوقات العمل أو الدوام
+    if (messageLower.includes("دوام") || messageLower.includes("وقت") || messageLower.includes("تفتحوا") || messageLower.includes("مواعيد")) {
         appendMessage(`أوقات العمل في ${businessData.name} هي: ${businessData.hours}`, 'bot');
         return;
     }
-    
-    // 2. الإجابة عن الخدمات
-    if (messageLower.includes("خدمات") || messageLower.includes("تسوا") || messageLower.includes("تعملوا")) {
-        appendMessage(`نقدم في ${businessData.name} الخدمات التالية: ${businessData.services}`, 'bot');
-        return;
+
+    // 2. البحث الذكي المرن في المنتجات / الخدمات
+    let foundItems = [];
+    for (let item of businessData.items) {
+        // فحص الكلمات للبحث المرن (مثلاً لو كتب بندول أو بنادول)
+        if (messageLower.includes(item.name.toLowerCase()) || 
+            (item.extraInfo && messageLower.includes(item.extraInfo.toLowerCase()))) {
+            foundItems.push(item);
+        }
     }
 
-    // 3. البحث في المنتجات المتاحة وتوليد زر الواتساب الأخضر
-    for (let product of businessData.products) {
-        if (messageLower.includes(product.name)) {
-            if (product.status === "متوفر") {
-                const whatsappText = encodeURIComponent(`مرحباً ${businessData.name}، أود طلب منتج: (${product.name}) بسعر ${product.price} عبر المساعد الذكي.`);
-                const whatsappUrl = `https://wa.me/${MERCHANT_WHATSAPP}?text=${whatsappText}`;
+    // إذا وجدنا منتجات تطابق بحث الزبون
+    if (foundItems.length > 0) {
+        foundItems.forEach(item => {
+            if (item.status === "متوفر") {
+                // صياغة نص الرسالة المناسب لنوع النشاط عند الإرسال للواتساب
+                let actionWord = (businessData.type === "school") ? "تسجيل واستفسار عن" : "طلب شراء";
+                const whatsappText = encodeURIComponent(`مرحباً ${businessData.name}، أود ${actionWord}: (${item.name}) بسعر ${item.price} عبر المساعد الذكي الخاص بكم.`);
+                const whatsappUrl = `https://wa.me/${businessData.whatsappNumber}?text=${whatsappText}`;
 
                 const responseHtml = `
-                    <div>سعر ${product.name} هو ${product.price} وحالته الحالية: ${product.status}.</div>
-                    <a href="${whatsappUrl}" target="_blank" class="whatsapp-btn">
-                         طلب الشراء عبر الواتساب 💬
+                    <div style="margin-bottom: 5px;">
+                        <strong>✨ ${item.name}</strong><br>
+                        💰 السعر: ${item.price}<br>
+                        💡 التفاصيل: ${item.extraInfo}<br>
+                        ✅ الحالة: ${item.status}
+                    </div>
+                    <a href="${whatsappUrl}" target="_blank" class="whatsapp-btn" style="background-color: #25D366; display: inline-flex; align-items: center; gap: 8px; color: white; padding: 8px 15px; border-radius: 20px; text-decoration: none; font-size: 13px; font-weight: bold; margin-top: 5px;">
+                         اضغط هنا للتأكيد والطلب 💬
                     </a>
                 `;
                 appendHtmlMessage(responseHtml, 'bot');
             } else {
-                appendMessage(`منتج ${product.name} سعره ${product.price} ولكنه للأسف: ${product.status} حالياً.`, 'bot');
+                appendMessage(`المنتج/الخدمة (${item.name}) سعره ${item.price} ولكنه للأسف غير متوفر حالياً.`, 'bot');
             }
-            return;
-        }
+        });
+        return;
     }
 
-    // 4. الرد الافتراضي المرن
-    appendMessage(`مرحباً بك، أنا مساعد ${businessData.name} الذكي. بخصوص استفسارك حول "${userMessage}"، يسعدنا تواصلك معنا، وسيقوم الصيدلي بمراجعة طلبك فوراً!`, 'bot');
+    // 3. الرد الافتراضي الذكي عند عدم العثور على منتج محدد
+    let defaultReply = `بخصوص استفسارك حول "${userMessage}"، تم تسجيل طلبك وسيقوم موظف الخدمة في ${businessData.name} بالتواصل معك ومساعدتك فوراً!`;
+    if (businessData.type === "pharmacy") {
+        defaultReply = `بخصوص استفسارك عن "${userMessage}"، تم إرسال الطلب للصيدلي المناوب ليفيدك بتوفره وبدائله فوراً!`;
+    } else if (businessData.type === "school") {
+        defaultReply = `أهلاً بك! بخصوص استفسارك عن "${userMessage}"، تم توجيه طلبك لإدارة القبول والتسجيل للتواصل معك والإجابة عن كافة تفاصيل دورتك الدراسية.`;
+    }
+
+    appendMessage(defaultReply, 'bot');
 }
